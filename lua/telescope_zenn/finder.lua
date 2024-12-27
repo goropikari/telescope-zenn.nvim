@@ -9,17 +9,16 @@ local entry_maker = function(opts)
     separator = ' ',
     items = {
       { width = opts.slug_display_length },
-      { width = 2 },
       { remaining = true },
     },
   })
 
   local make_display = function(entry)
     local metadata = entry.value
-    local slug_abbrev = string.sub(metadata.slug, 0, opts.slug_display_length)
+    local slug = string.match(metadata.path, 'articles/(.+).md')
+    local slug_abbrev = string.sub(slug, 0, opts.slug_display_length)
     return displayer({
       { slug_abbrev, 'TelescopeResultsIdentifier' },
-      metadata.emoji,
       metadata.title,
     })
   end
@@ -29,9 +28,9 @@ local entry_maker = function(opts)
     return {
       value = metadata,
       -- add topic tags to improve searchability
-      ordinal = metadata.slug .. ' ' .. metadata.title .. ' ' .. table.concat(metadata.topics, ' '),
+      ordinal = metadata.path,
       display = make_display,
-      path = 'articles/' .. metadata.slug .. '.md',
+      path = metadata.path,
     }
   end
 end
@@ -44,7 +43,12 @@ M.make_finder = function(opts)
     end,
   }, {
     __call = function(self, ...)
-      local cmd = { 'npx', 'zenn', 'list:articles', '--format', 'json' }
+      -- local cmd = { 'npx', 'zenn', 'list:articles', '--format', 'json' }
+      local cmd = {
+        'bash',
+        '-c',
+        [[rg "title: (.+)" --json | jq -c 'select(.type == "match") | {path: .data.path.text, title: .data.lines.text} | .title |= capture("title: \\\"(?<content>.+)\\\"").content']],
+      }
       self._finder = finders.new_oneshot_job(cmd, opts)
       self._finder(...)
     end,
