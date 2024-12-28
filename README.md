@@ -11,14 +11,6 @@
 
 ## Install
 
-- packer.nvim
-
-```lua
-use {
-  "sankantsu/telescope-zenn.nvim", requires = { { "nvim-telescope/telescope.nvim" } }
-}
-```
-
 - lazy.nvim
 
 ```lua
