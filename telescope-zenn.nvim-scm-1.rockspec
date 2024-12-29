@@ -5,7 +5,7 @@ source = {
   url = 'https://github.com/goropikari/telescope-zenn.nvim',
 }
 description = {
-  summary = 'plantuml neovim plugin',
+  summary = 'telescope extension of zenn',
   homepage = 'https://github.com/goropikari/telescope-zenn.nvim',
   license = 'MIT',
   maintainer = 'goropikari',
