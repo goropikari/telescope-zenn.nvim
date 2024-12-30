@@ -1,6 +1,6 @@
 local finders = require('telescope.finders')
 local entry_display = require('telescope.pickers.entry_display')
-local yaml = require('yaml')
+local front_matter = require('front-matter')
 
 local M = {}
 
@@ -42,6 +42,36 @@ local entry_maker = function(opts)
   end
 end
 
+local function list_files(directory)
+  local files = {}
+
+  -- Check if the directory exists
+  if not vim.uv.fs_stat(directory) then
+    vim.notify(string.format("Directory '%s' does not exist", directory), vim.log.levels.ERROR)
+    return files
+  end
+
+  local handle = vim.uv.fs_scandir(directory)
+  if not handle then
+    vim.notify(string.format("Failed to open directory '%s'", directory), vim.log.levels.ERROR)
+    return files
+  end
+
+  while true do
+    local name, type = vim.uv.fs_scandir_next(handle)
+    if not name then
+      break
+    end
+
+    -- Include only files (skip directories if needed)
+    if type == 'file' then
+      table.insert(files, vim.fs.joinpath(directory, name))
+    end
+  end
+
+  return files
+end
+
 ---@class Article
 ---@field title string
 ---@field emoji string
@@ -52,40 +82,15 @@ end
 
 ---@return Article[]
 local function list_articles()
-  local res = vim
-    .system({
-      'rg',
-      '-N',
-      '-U',
-      '--multiline-dotall',
-      '-r',
-      '$1',
-      '--',
-      '^---$\n(.*)\n^---$',
-    }, { text = true })
-    :wait()
-  local lines = vim.split(res.stdout, '\n')
+  local files = list_files('articles')
 
-  local temp = {}
-  for _, line in ipairs(lines) do
-    local path, elem = string.match(line, '(articles/.*.md):(.*)')
-    if path then
-      if temp[path] then
-        table.insert(temp[path], elem)
-      else
-        temp[path] = { elem }
-      end
-    end
+  local md = front_matter.get(files) or {}
+  local metadata = {}
+  for k, v in pairs(md) do
+    v.path = k
+    table.insert(metadata, v)
   end
-
-  local md = {}
-  for path, v in pairs(temp) do
-    local y = yaml.eval(vim.fn.join(v, '\n'))
-    y.path = path
-    table.insert(md, y)
-  end
-
-  return md
+  return metadata
 end
 
 M.make_finder = function(opts)
