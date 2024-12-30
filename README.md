@@ -14,19 +14,28 @@
 - lazy.nvim
 
 ```lua
-require("lazy").setup({
-  { "sankantsu/telescope-zenn.nvim", dependencies = { "nvim-telescope/telescope.nvim", } },
-})
+{
+  'goropikari/telescope-zenn.nvim',
+  dependencies = {
+    'nvim-telescope/telescope.nvim',
+    {
+      'goropikari/front-matter.nvim',
+      opts = {},
+      build = 'make build',
+    },
+  },
+},
+
 ```
 
 ## Command, Keymap
 
-- `:Telescope zenn article_picker`: 記事選択画面を起動します。
+- `:Telescope zenn`: 記事選択画面を起動します。
 
 キーマップ設定例
 
 ```lua
-vim.keymap.set('n', '<leader>fz', telescope.extensions.zenn.article_picker)
+vim.keymap.set('n', '<leader>fz', telescope.extensions.zenn.zenn)
 ```
 
 ## ⚠️注意点

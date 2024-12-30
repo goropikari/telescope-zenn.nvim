@@ -33,6 +33,6 @@ end
 return require('telescope').register_extension({
   setup = setup,
   exports = {
-    article_picker = article_picker,
+    zenn = article_picker,
   },
 })
