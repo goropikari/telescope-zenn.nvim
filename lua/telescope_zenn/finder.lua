@@ -82,7 +82,15 @@ end
 
 ---@return Article[]
 local function list_articles()
-  local files = list_files('articles')
+  local base_path
+  local out = vim.system({ 'git', 'rev-parse', '--show-toplevel' }):wait()
+  if out.code == 0 then
+    base_path = vim.fn.trim(out.stdout)
+  else
+    base_path = vim.fn.getcwd()
+  end
+
+  local files = list_files(vim.fs.joinpath(base_path, 'articles'))
 
   local md = front_matter.get(files) or {}
   local metadata = {}
