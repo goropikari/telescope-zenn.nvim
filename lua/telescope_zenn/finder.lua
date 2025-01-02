@@ -43,31 +43,9 @@ local entry_maker = function(opts)
 end
 
 local function list_files(directory)
-  local files = {}
-
-  -- Check if the directory exists
-  if not vim.uv.fs_stat(directory) then
-    vim.notify(string.format("Directory '%s' does not exist", directory), vim.log.levels.ERROR)
-    return files
-  end
-
-  local handle = vim.uv.fs_scandir(directory)
-  if not handle then
-    vim.notify(string.format("Failed to open directory '%s'", directory), vim.log.levels.ERROR)
-    return files
-  end
-
-  while true do
-    local name, type = vim.uv.fs_scandir_next(handle)
-    if not name then
-      break
-    end
-
-    -- Include only files (skip directories if needed)
-    if type == 'file' then
-      table.insert(files, vim.fs.joinpath(directory, name))
-    end
-  end
+  local files = vim.fs.find(function(name, path)
+    return name:match('.*%.md$')
+  end, { limit = math.huge, type = 'file', path = directory })
 
   return files
 end
